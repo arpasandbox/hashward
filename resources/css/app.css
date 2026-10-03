@@ -1,0 +1,570 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+    --font-mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', monospace;
+
+    --color-sb-bg: #0c0f14;
+    --color-sb-surface: #141a22;
+    --color-sb-surface-2: #1b2430;
+    --color-sb-border: #2a3544;
+    --color-sb-text: #e8edf4;
+    --color-sb-muted: #8b98a8;
+    --color-sb-accent: #d4a853;
+    --color-sb-accent-dim: #9a7340;
+    --color-sb-danger: #f07178;
+    --color-sb-success: #7fd99a;
+}
+
+html {
+    color-scheme: dark;
+}
+
+body.sb-body {
+    @apply min-h-screen bg-(--color-sb-bg) text-(--color-sb-text) antialiased;
+    font-family: var(--font-sans);
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.sb-brand {
+    @apply text-xl font-semibold tracking-tight text-(--color-sb-accent);
+    letter-spacing: 0.02em;
+}
+
+.sb-brand-mark {
+    @apply mr-2 inline-flex h-8 w-8 items-center justify-center rounded-md border border-(--color-sb-accent-dim) bg-(--color-sb-surface-2) text-sm font-bold text-(--color-sb-accent);
+}
+
+.sb-brand-logo {
+    @apply h-auto w-28 max-w-full object-contain sm:w-32;
+}
+
+.sb-auth-wrap {
+    @apply mx-auto flex min-h-screen max-w-md flex-col justify-center px-3 py-8 sm:px-4 sm:py-10;
+}
+
+.sb-panel {
+    @apply rounded-xl border border-(--color-sb-border) bg-(--color-sb-surface) p-4 shadow-lg shadow-black/20 sm:p-6;
+}
+
+.sb-page-main {
+    @apply p-3 sm:p-6;
+}
+
+.sb-page-title {
+    @apply text-xl sm:text-2xl;
+}
+
+.sb-step {
+    @apply mb-4 text-xs font-medium uppercase tracking-wider text-(--color-sb-muted);
+}
+
+.sb-lead {
+    @apply mb-6 text-sm leading-relaxed text-(--color-sb-muted);
+}
+
+.sb-label {
+    @apply mb-1.5 block text-sm font-medium text-(--color-sb-text);
+}
+
+.sb-input {
+    @apply w-full rounded-lg border border-(--color-sb-border) bg-(--color-sb-surface-2) px-3 py-2.5 text-sm text-(--color-sb-text) outline-none transition;
+}
+
+.sb-input:focus {
+    @apply border-(--color-sb-accent) ring-2 ring-(--color-sb-accent)/30;
+}
+
+.sb-btn-primary {
+    @apply inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-medium transition bg-(--color-sb-accent) text-(--color-sb-bg) hover:brightness-110;
+}
+
+.sb-btn-new {
+    @apply gap-2;
+}
+
+.sb-btn-icon {
+    @apply h-4 w-4 shrink-0;
+}
+
+.sb-btn-ghost {
+    @apply inline-flex min-h-11 items-center justify-center rounded-lg border border-(--color-sb-border) bg-transparent px-3 py-2.5 text-sm font-medium text-(--color-sb-text) transition hover:bg-(--color-sb-surface-2) sm:px-4;
+}
+
+.sb-btn-accent {
+    @apply inline-flex items-center justify-center rounded-lg border border-(--color-sb-accent)/50 px-4 py-2.5 text-sm font-medium text-(--color-sb-accent) transition hover:bg-(--color-sb-accent)/10;
+}
+
+.sb-btn-danger {
+    @apply inline-flex items-center justify-center rounded-lg border border-(--color-sb-danger)/40 px-4 py-2.5 text-sm font-medium text-(--color-sb-danger) transition hover:bg-(--color-sb-danger)/10;
+}
+
+.sb-alert-error {
+    @apply mb-4 rounded-lg border border-(--color-sb-danger)/40 bg-(--color-sb-danger)/10 px-3 py-2 text-sm text-(--color-sb-danger);
+}
+
+.sb-note {
+    @apply mt-4 text-xs leading-relaxed text-(--color-sb-muted);
+}
+
+.sb-vault-shell {
+    @apply flex min-h-screen flex-col;
+}
+
+.sb-vault-top {
+    @apply border-b border-(--color-sb-border) bg-(--color-sb-surface);
+}
+
+.sb-vault-top-inner {
+    @apply mx-auto flex max-w-[1400px] items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3;
+}
+
+.sb-vault-top-inner--centered {
+    @apply justify-center;
+}
+
+.sb-vault-main-bar {
+    @apply flex flex-wrap items-center justify-between gap-2 border-b border-(--color-sb-border) px-2 py-2 sm:gap-3 sm:px-4 sm:py-2.5;
+}
+
+.sb-vault-toolbar {
+    @apply flex min-w-0 flex-nowrap items-center justify-end gap-2 sm:gap-3;
+}
+
+.sb-vault-toolbar .sb-input,
+.sb-vault-toolbar .sb-btn-primary {
+    @apply box-border min-h-11;
+}
+
+.sb-vault-toolbar .sb-input {
+    @apply w-36 min-w-0 shrink sm:w-56;
+}
+
+.sb-vault-toolbar .sb-btn-primary {
+    @apply w-auto shrink-0 whitespace-nowrap;
+}
+
+.sb-timer {
+    @apply rounded-full border border-(--color-sb-border) bg-(--color-sb-surface-2) px-3 py-1 font-mono text-xs text-(--color-sb-accent);
+}
+
+.sb-vault-grid {
+    @apply mx-auto grid w-full max-w-[1400px] flex-1 gap-0 lg:grid-cols-[220px_minmax(0,1fr)];
+}
+
+.sb-sidebar {
+    @apply border-b border-(--color-sb-border) p-3 sm:p-4;
+}
+
+@media (max-width: 1023px) {
+    .sb-vault-main {
+        padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .sb-vault-main-bar {
+        @apply flex-col items-stretch gap-2.5;
+    }
+
+    .sb-vault-nav {
+        @apply w-full;
+    }
+
+    .sb-vault-toolbar {
+        @apply mb-5 w-full;
+    }
+}
+
+/* Phone: search and Add new stacked */
+@media (max-width: 639px) {
+    .sb-vault-toolbar {
+        @apply flex-col items-stretch gap-2;
+    }
+
+    .sb-vault-toolbar .sb-input {
+        @apply h-11 w-full;
+    }
+
+    .sb-vault-toolbar .sb-btn-primary {
+        @apply h-11 w-full;
+    }
+}
+
+/* Tablet: search and Add new on one row */
+@media (min-width: 640px) and (max-width: 1023px) {
+    .sb-vault-toolbar {
+        @apply flex-row flex-nowrap items-stretch gap-2;
+    }
+
+    .sb-vault-toolbar .sb-input {
+        @apply h-11 min-w-0 flex-1;
+    }
+
+    .sb-vault-toolbar .sb-btn-primary {
+        @apply h-11 w-auto shrink-0 self-auto;
+    }
+
+    .sb-mobile-bar {
+        @apply fixed right-0 bottom-0 left-0 z-50 grid grid-cols-2 border-t border-(--color-sb-border) bg-(--color-sb-surface) shadow-[0_-4px_24px_rgba(0,0,0,0.4)];
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .sb-sheet-scrim {
+        @apply fixed inset-x-0 top-0 z-40 bg-black/50;
+        bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .sb-sheet-panel {
+        @apply fixed inset-x-0 z-45 max-h-[min(70dvh,calc(100dvh-6rem))] overflow-y-auto rounded-t-2xl border border-(--color-sb-border) bg-(--color-sb-surface) text-(--color-sb-text) shadow-2xl;
+        bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+.sb-mobile-bar-btn {
+    @apply flex min-h-[3.5rem] flex-col items-center justify-center gap-1 border-0 bg-transparent px-2 py-2 text-xs font-medium text-(--color-sb-muted) transition;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sb-mobile-bar-btn[aria-expanded='true'] {
+    @apply text-(--color-sb-accent);
+}
+
+.sb-mobile-bar-icon {
+    @apply h-6 w-6;
+}
+
+.sb-sheet-body {
+    @apply space-y-2 p-4;
+}
+
+.sb-sheet-title {
+    @apply mb-1 text-xs font-semibold uppercase tracking-wider text-(--color-sb-muted);
+}
+
+@media (min-width: 1024px) {
+    .sb-mobile-bar,
+    .sb-sheet-scrim,
+    .sb-sheet-panel {
+        display: none !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .sb-sidebar {
+        @apply sticky top-0 max-h-screen overflow-y-auto border-b-0 border-r;
+    }
+}
+
+.sb-sidebar-title {
+    @apply mb-2 text-xs font-semibold uppercase tracking-wider text-(--color-sb-muted);
+}
+
+.sb-sidebar-brand {
+    @apply mb-5 flex justify-center;
+}
+
+.sb-sidebar-brand .sb-brand-logo {
+    @apply w-24 sm:w-28;
+}
+
+.sb-vault-top .sb-brand-logo {
+    @apply w-20 sm:w-24;
+}
+
+.sb-nav-item {
+    @apply rounded-lg px-3 py-2 text-sm text-(--color-sb-muted) transition hover:bg-(--color-sb-surface-2) hover:text-(--color-sb-text);
+}
+
+.sb-nav-item.is-active {
+    @apply bg-(--color-sb-surface-2) font-medium text-(--color-sb-accent);
+}
+
+.sb-vault-nav {
+    @apply flex min-w-0 flex-wrap gap-1;
+}
+
+.sb-vault-nav .sb-nav-item {
+    @apply shrink-0;
+}
+
+.sb-tag-chip {
+    @apply mb-1 mr-1 inline-block cursor-pointer rounded-full border border-(--color-sb-border) px-2.5 py-0.5 text-xs text-(--color-sb-muted) transition hover:border-(--color-sb-accent-dim) hover:text-(--color-sb-text);
+}
+
+.sb-tag-chip.is-active {
+    @apply border-(--color-sb-accent) text-(--color-sb-accent);
+}
+
+.sb-vault-main {
+    @apply flex min-w-0 flex-col border-b border-(--color-sb-border) lg:border-b-0;
+}
+
+.sb-table-wrap {
+    @apply overflow-x-auto border-b border-(--color-sb-border);
+}
+
+.sb-vault-table {
+    @apply w-full border-collapse text-left text-sm;
+}
+
+@media (min-width: 640px) {
+    .sb-vault-table {
+        min-width: 44rem;
+    }
+}
+
+.sb-table-cell-tags {
+    @apply max-w-[12rem] align-middle;
+}
+
+.sb-table-tags {
+    @apply flex flex-wrap gap-1;
+}
+
+.sb-table-tag-pill {
+    @apply inline-flex max-w-full truncate rounded-full border border-(--color-sb-border) bg-(--color-sb-surface-2) px-2 py-0.5 text-xs leading-tight text-(--color-sb-muted);
+}
+
+.sb-table-tags-empty {
+    @apply text-(--color-sb-muted);
+}
+
+@media (max-width: 639px) {
+    .sb-table-cell-tags {
+        @apply items-start;
+    }
+
+    .sb-table-cell-tags .sb-table-tags {
+        @apply justify-end;
+    }
+}
+
+.sb-vault-table thead {
+    @apply border-b border-(--color-sb-border) bg-(--color-sb-surface);
+}
+
+.sb-vault-table th {
+    @apply px-4 py-3 text-xs font-semibold uppercase tracking-wider text-(--color-sb-muted);
+}
+
+.sb-table-col-date {
+    @apply w-[7.5rem] whitespace-nowrap;
+}
+
+.sb-table-row {
+    @apply cursor-pointer border-b border-(--color-sb-border)/60 transition hover:bg-(--color-sb-surface-2);
+}
+
+.sb-table-row.is-selected {
+    @apply bg-(--color-sb-surface-2);
+    box-shadow: inset 3px 0 0 var(--color-sb-accent);
+}
+
+.sb-table-cell {
+    @apply max-w-[12rem] truncate px-4 py-3 align-middle;
+}
+
+.sb-table-cell-title {
+    @apply max-w-[16rem] font-medium text-(--color-sb-text);
+}
+
+.sb-table-cell-muted {
+    @apply text-(--color-sb-muted);
+}
+
+.sb-table-fav {
+    @apply mr-1 text-(--color-sb-accent);
+}
+
+.sb-detail-pane {
+    @apply p-4 lg:p-5;
+}
+
+.sb-detail-dialog-top {
+    @apply -mt-1 mb-5 flex justify-end;
+}
+
+.sb-dialog-close {
+    @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-(--color-sb-border) bg-transparent text-(--color-sb-muted) transition hover:bg-(--color-sb-surface-2) hover:text-(--color-sb-text);
+    touch-action: manipulation;
+}
+
+.sb-dialog-close-icon {
+    @apply h-5 w-5;
+}
+
+.sb-detail-title {
+    @apply text-xl font-semibold tracking-tight break-words sm:text-2xl;
+}
+
+.sb-dialog-body {
+    @apply p-4 sm:p-6;
+}
+
+.sb-detail-meta {
+    @apply mt-1 text-sm text-(--color-sb-muted);
+}
+
+.sb-field-row {
+    @apply mt-5 border-t border-(--color-sb-border) pt-4;
+}
+
+.sb-field-label {
+    @apply text-xs font-semibold uppercase tracking-wider text-(--color-sb-muted);
+}
+
+.sb-field-value {
+    @apply mt-1 break-all text-sm;
+}
+
+.sb-field-value.mono {
+    font-family: var(--font-mono);
+}
+
+.sb-generator-output {
+    @apply mb-4 block w-full break-all rounded-lg border border-(--color-sb-border) bg-(--color-sb-surface-2) p-4 text-center text-lg font-semibold tracking-wide;
+    font-family: var(--font-mono);
+    color: var(--color-sb-accent);
+}
+
+.sb-generator-length-row {
+    @apply flex items-center gap-3;
+}
+
+.sb-generator-length-row .sb-label {
+    @apply shrink-0;
+}
+
+.sb-generator-length {
+    @apply w-20 max-w-[5rem] py-2;
+}
+
+.sb-generator-actions {
+    @apply mt-5 flex flex-wrap items-center justify-between gap-2;
+}
+
+.sb-generator-actions-primary {
+    @apply flex items-center gap-2;
+}
+
+.sb-generator-actions-primary .sb-btn-primary {
+    @apply w-auto shrink-0;
+}
+
+dialog.sb-dialog {
+    @apply rounded-xl border border-(--color-sb-border) bg-(--color-sb-surface) p-0 text-(--color-sb-text) shadow-2xl;
+    color-scheme: inherit;
+    position: fixed;
+    inset: 0;
+    width: min(32rem, calc(100vw - 1rem));
+    max-width: calc(100vw - 1rem);
+    max-height: min(90dvh, calc(100vh - 1rem));
+    height: fit-content;
+    margin: auto;
+    overflow-y: auto;
+}
+
+dialog.sb-dialog.sb-dialog-md {
+    width: min(28rem, calc(100vw - 1rem));
+}
+
+@media (max-width: 380px) {
+    .sb-brand {
+        @apply text-lg;
+    }
+
+    .sb-brand-mark {
+        @apply mr-1.5 h-7 w-7 text-xs;
+    }
+
+    .sb-generator-output {
+        @apply p-3 text-base;
+    }
+
+    .sb-generator-actions {
+        @apply flex-col items-stretch;
+    }
+
+    .sb-generator-actions-primary {
+        @apply w-full justify-between;
+    }
+
+    .sb-entry-password-row {
+        @apply flex-col items-stretch;
+    }
+
+    .sb-entry-password-row .sb-btn-ghost {
+        @apply w-full;
+    }
+}
+
+/* Vault list: card layout on narrow screens (min supported width 320px) */
+@media (max-width: 639px) {
+    .sb-vault-table thead {
+        @apply hidden;
+    }
+
+    .sb-vault-table,
+    .sb-vault-table tbody,
+    .sb-table-row {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .sb-table-row {
+        @apply mb-2 rounded-lg border border-(--color-sb-border) bg-(--color-sb-surface);
+        box-shadow: none;
+    }
+
+    .sb-table-row.is-selected {
+        @apply border-(--color-sb-accent);
+        box-shadow: inset 3px 0 0 var(--color-sb-accent);
+    }
+
+    .sb-table-cell {
+        @apply flex max-w-none items-baseline justify-between gap-3 px-3 py-2;
+    }
+
+    .sb-table-cell::before {
+        content: attr(data-label);
+        @apply shrink-0 text-xs font-semibold uppercase tracking-wider text-(--color-sb-muted);
+    }
+
+    .sb-table-cell-title {
+        @apply block border-b border-(--color-sb-border)/60 px-3 py-3 font-medium;
+    }
+
+    .sb-table-cell-title::before {
+        content: none;
+        display: none;
+    }
+
+    .sb-table-col-date {
+        @apply w-auto whitespace-normal;
+    }
+
+    .sb-table-wrap {
+        @apply border-b-0 px-2 pb-2;
+    }
+
+    .sb-vault-main {
+        @apply px-0;
+    }
+
+    .sb-audit-table {
+        min-width: 18rem;
+    }
+}
+
+dialog.sb-dialog::backdrop {
+    @apply bg-black/60;
+}
