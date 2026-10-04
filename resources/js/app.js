@@ -1,4 +1,5 @@
 import './bootstrap';
+import { initPasswordToggles } from './password-toggle.js';
 
 function showBootError(message) {
     const targets = [
@@ -24,9 +25,15 @@ async function bootPageModules() {
         const { initVaultSetup } = await import('./vault-setup.js');
         initVaultSetup();
     }
+
+    if (document.querySelector('[data-invites-page]')) {
+        const { initInvitesPage } = await import('./invites.js');
+        initInvitesPage();
+    }
 }
 
 function start() {
+    initPasswordToggles();
     bootPageModules().catch((error) => {
         console.error(error);
         showBootError('Vault scripts failed to load. Hard refresh, or run: npm run build');

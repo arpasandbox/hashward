@@ -24,7 +24,18 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
             'kdf_iterations' => 600000,
+            'is_host' => true,
+            'invited_by' => null,
         ];
+    }
+
+    public function invitee(User $host): static
+    {
+        return $this->state(fn () => [
+            'is_host' => false,
+            'invited_by' => $host->id,
+            'invited_at' => now(),
+        ]);
     }
 
     public function withTwoFactor(): static

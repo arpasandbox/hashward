@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\Settings\AuditLogController;
+use App\Http\Controllers\Settings\UserInviteController;
 use App\Http\Controllers\Settings\CryptoSettingsController;
 use App\Http\Controllers\Vault\VaultItemController;
 use App\Http\Controllers\Vault\VaultPageController;
@@ -21,6 +23,13 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:login');
+
+    Route::get('/invite/{token}', [AcceptInviteController::class, 'show'])
+        ->name('invites.show')
+        ->middleware('throttle:invite');
+    Route::post('/invite/{token}', [AcceptInviteController::class, 'store'])
+        ->name('invites.store')
+        ->middleware('throttle:invite');
 });
 
 Route::post('/logout', [LoginController::class, 'destroy'])
@@ -39,6 +48,15 @@ Route::middleware(['auth', 'two_factor'])->group(function () {
     Route::get('/vault/setup', [VaultPageController::class, 'setup'])->name('vault.setup');
     Route::get('/vault', [VaultPageController::class, 'index'])->name('vault');
     Route::get('/settings/audit', [AuditLogController::class, 'index'])->name('settings.audit');
+
+    Route::middleware('host')->group(function () {
+        Route::get('/settings/invites', [UserInviteController::class, 'index'])->name('settings.invites');
+        Route::post('/settings/invites', [UserInviteController::class, 'store'])->name('settings.invites.store');
+        Route::delete('/settings/invites/{userInvite}', [UserInviteController::class, 'destroy'])->name('settings.invites.destroy');
+        Route::post('/settings/invites/{userInvite}/link', [UserInviteController::class, 'link'])
+            ->middleware('throttle:vault')
+            ->name('settings.invites.link');
+    });
 
     Route::middleware('throttle:vault')->prefix('api')->group(function () {
         Route::get('/crypto', [CryptoSettingsController::class, 'show']);

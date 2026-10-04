@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureTwoFactorVerified;
+use App\Http\Middleware\EnsureUserIsHost;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(SecurityHeaders::class);
         $middleware->alias([
             'two_factor' => EnsureTwoFactorVerified::class,
+            'host' => EnsureUserIsHost::class,
         ]);
         // Avoid /login → / → /login loop when a session already exists (guest middleware default is "/").
         $middleware->redirectUsersTo(fn () => route('two-factor.challenge'));

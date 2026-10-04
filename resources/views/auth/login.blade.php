@@ -8,6 +8,10 @@
     title="Sign in"
     lead="This is your account login, not your master password."
 >
+    @if (session('status'))
+        <div class="sb-alert-success mb-4" role="status">{{ session('status') }}</div>
+    @endif
+
     @if ($errors->any())
         <div class="sb-alert-error" role="alert">
             @foreach ($errors->all() as $error)
@@ -23,11 +27,13 @@
             <input id="email" name="email" type="email" autocomplete="username" required
                 value="{{ old('email') }}" class="sb-input">
         </div>
-        <div>
-            <label for="password" class="sb-label">Account password</label>
-            <input id="password" name="password" type="password" autocomplete="current-password" required
-                class="sb-input">
-        </div>
+        <x-hashward.password-field
+            id="password"
+            name="password"
+            label="Account password"
+            autocomplete="current-password"
+            required
+        />
         <button type="submit" class="sb-btn-primary">Continue</button>
     </form>
 

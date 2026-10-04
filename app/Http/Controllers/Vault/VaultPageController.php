@@ -32,6 +32,7 @@ class VaultPageController extends Controller
             'kdfIterations' => $user->kdf_iterations,
             'vaultCheck' => $user->vault_check,
             'userName' => $user->name,
+            'isHost' => $user->isHost(),
         ]);
     }
 }

@@ -8,6 +8,7 @@ import {
     encryptExport,
     DEFAULT_KDF_ITERATIONS,
 } from './crypto';
+import { setPasswordToggleRevealed } from './password-toggle.js';
 import {
     buildApiHeaders,
     buildFormBody,
@@ -20,6 +21,16 @@ const AUTO_LOCK_MINUTES = 30;
 const AUTO_LOCK_MS = AUTO_LOCK_MINUTES * 60 * 1000;
 const CLIPBOARD_CLEAR_MS = 20 * 1000;
 const SESSION_KEEPALIVE_MS = 4 * 60 * 1000;
+
+let favoriteStarMarkup = '★';
+
+function loadFavoriteStarMarkup() {
+    const tpl = document.getElementById('tpl-icon-star');
+    const node = tpl?.content?.firstElementChild;
+    if (node) {
+        favoriteStarMarkup = node.outerHTML;
+    }
+}
 
 /** @type {CryptoKey|null} */
 let vaultKey = null;
@@ -513,7 +524,9 @@ function renderDetail(item, { openModal = false } = {}) {
     if (passEl) {
         passEl.textContent = detailPasswordRevealed ? (item.plain.password || '') : '••••••••••••';
     }
-    if (toggleEl) toggleEl.textContent = detailPasswordRevealed ? 'Hide' : 'Show';
+    if (toggleEl) {
+        setPasswordToggleRevealed(toggleEl, detailPasswordRevealed);
+    }
 
     if (openModal && dialog) {
         dialog.showModal();
@@ -588,13 +601,13 @@ function bindMobilePanels() {
     });
     document.getElementById('btn-mobile-export')?.addEventListener('click', () => {
         closeMobilePanels();
-        exportVault();
+        openExportDialog();
     });
     document.getElementById('btn-mobile-change-master')?.addEventListener('click', () => {
         closeMobilePanels();
-        changeMasterPassword();
+        openChangeMasterDialog();
     });
-    document.getElementById('btn-mobile-lock')?.addEventListener('click', () => {
+    document.getElementById('btn-mobile-bar-lock')?.addEventListener('click', () => {
         closeMobilePanels();
         lockVault('manual');
     });
@@ -615,7 +628,7 @@ function tableRowTemplate(item) {
     const tagList = item.plain?.tags || [];
     const tagsTitle = tagList.filter(Boolean).join(', ');
     const favorite = item.plain?.favorite
-        ? '<span class="sb-table-fav" aria-hidden="true">★</span>'
+        ? `<span class="sb-table-fav" aria-hidden="true">${favoriteStarMarkup}</span>`
         : '';
 
     const tr = document.createElement('tr');
@@ -894,16 +907,91 @@ function refreshGenerator() {
     if (out) out.textContent = value;
 }
 
-async function exportVault() {
-    const passphrase = prompt('Export passphrase (min 12 characters):');
-    if (!passphrase || passphrase.length < 12) return;
-    const active = items.filter((i) => !i.deleted_at).map((i) => ({ id: i.id, ...i.plain }));
-    const blob = await encryptExport(passphrase, { exported_at: new Date().toISOString(), items: active });
-    await api('/api/audit/export', { method: 'POST' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([blob], { type: 'application/json' }));
-    a.download = `${Date.now()}.json`;
-    a.click();
+function clearExportError() {
+    const el = document.getElementById('export-error');
+    if (!el) return;
+    el.textContent = '';
+    el.hidden = true;
+    el.classList.add('hidden');
+}
+
+function showExportError(message) {
+    const el = document.getElementById('export-error');
+    if (!el) return;
+    el.textContent = message;
+    el.hidden = false;
+    el.classList.remove('hidden');
+}
+
+function setExportBusy(busy) {
+    const submit = document.getElementById('export-submit');
+    const cancel = document.getElementById('export-cancel');
+    const close = document.getElementById('export-dialog-close');
+    const inputs = [
+        document.getElementById('export-passphrase'),
+        document.getElementById('export-passphrase-confirm'),
+    ];
+    inputs.forEach((input) => {
+        if (input) input.disabled = busy;
+    });
+    if (submit) {
+        submit.disabled = busy;
+        submit.textContent = busy ? 'Preparing…' : 'Download export';
+    }
+    if (cancel) cancel.disabled = busy;
+    if (close) close.disabled = busy;
+}
+
+async function openExportDialog() {
+    const { resetPasswordToggles } = await import('./password-toggle.js');
+    const dialog = document.getElementById('export-dialog');
+    const form = document.getElementById('export-form');
+    if (!dialog || !form) return;
+    form.reset();
+    resetPasswordToggles(form);
+    clearExportError();
+    setExportBusy(false);
+    dialog.showModal();
+    document.getElementById('export-passphrase')?.focus();
+}
+
+function closeExportDialog() {
+    document.getElementById('export-dialog')?.close();
+}
+
+async function submitExportVault(event) {
+    event?.preventDefault();
+    clearExportError();
+
+    const passphrase = document.getElementById('export-passphrase')?.value ?? '';
+    const confirm = document.getElementById('export-passphrase-confirm')?.value ?? '';
+
+    if (passphrase.length < 12) {
+        showExportError('Passphrase must be at least 12 characters.');
+        return;
+    }
+    if (passphrase !== confirm) {
+        showExportError('Passphrases do not match.');
+        return;
+    }
+
+    setExportBusy(true);
+    try {
+        const active = items.filter((i) => !i.deleted_at).map((i) => ({ id: i.id, ...i.plain }));
+        const blob = await encryptExport(passphrase, { exported_at: new Date().toISOString(), items: active });
+        await api('/api/audit/export', { method: 'POST' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([blob], { type: 'application/json' }));
+        a.download = `${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        closeExportDialog();
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Could not create export.';
+        showExportError(message);
+    } finally {
+        setExportBusy(false);
+    }
 }
 
 function parseCsvLine(line) {
@@ -963,52 +1051,127 @@ async function importCsv(file) {
     await loadItems();
 }
 
-async function changeMasterPassword() {
-    const current = prompt('Current master password:');
-    if (!current) return;
-    const { salt, iterations, vaultCheck } = await ensureCryptoConfig();
-    const currentKey = await deriveKey(current, salt, iterations);
-    if (!(await verifyVaultCheck(currentKey, vaultCheck))) {
-        alert('Current master password is incorrect.');
-        return;
-    }
-    const next = prompt('New master password (min 12 chars):');
-    if (!next || next.length < 12) return;
-    const confirm = prompt('Confirm new master password:');
-    if (next !== confirm) {
-        alert('Passwords do not match.');
-        return;
-    }
-    const newSalt = generateSalt();
-    const newKey = await deriveKey(next, newSalt, iterations);
-    const newCheck = await makeVaultCheck(newKey);
-    const payloadItems = [];
-    for (const item of items.filter((i) => !i.deleted_at)) {
-        const plain = item.plain ?? (await decryptJson(currentKey, item.ciphertext, item.iv));
-        const enc = await encryptJson(newKey, plain);
-        payloadItems.push({ id: item.id, ...enc });
-    }
-    await api('/api/crypto/rotate', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            kdf_salt: newSalt,
-            kdf_iterations: iterations,
-            vault_check: newCheck,
-            items: payloadItems,
-        }),
+function clearChangeMasterError() {
+    const el = document.getElementById('change-master-error');
+    if (!el) return;
+    el.textContent = '';
+    el.hidden = true;
+    el.classList.add('hidden');
+}
+
+function showChangeMasterError(message) {
+    const el = document.getElementById('change-master-error');
+    if (!el) return;
+    el.textContent = message;
+    el.hidden = false;
+    el.classList.remove('hidden');
+}
+
+function setChangeMasterBusy(busy) {
+    const submit = document.getElementById('change-master-submit');
+    const cancel = document.getElementById('change-master-cancel');
+    const close = document.getElementById('change-master-dialog-close');
+    const inputs = [
+        document.getElementById('change-master-current'),
+        document.getElementById('change-master-new'),
+        document.getElementById('change-master-confirm'),
+    ];
+    inputs.forEach((input) => {
+        if (input) input.disabled = busy;
     });
-    cryptoConfig = {
-        salt: newSalt,
-        iterations,
-        vaultCheck: JSON.parse(newCheck),
-    };
-    vaultKey = newKey;
-    alert('Master password updated.');
-    await loadItems();
+    if (submit) {
+        submit.disabled = busy;
+        submit.textContent = busy ? 'Updating…' : 'Update password';
+    }
+    if (cancel) cancel.disabled = busy;
+    if (close) close.disabled = busy;
+}
+
+async function openChangeMasterDialog() {
+    const { resetPasswordToggles } = await import('./password-toggle.js');
+    const dialog = document.getElementById('change-master-dialog');
+    const form = document.getElementById('change-master-form');
+    if (!dialog || !form) return;
+    form.reset();
+    resetPasswordToggles(form);
+    clearChangeMasterError();
+    setChangeMasterBusy(false);
+    dialog.showModal();
+    document.getElementById('change-master-current')?.focus();
+}
+
+function closeChangeMasterDialog() {
+    document.getElementById('change-master-dialog')?.close();
+}
+
+async function submitChangeMasterPassword(event) {
+    event?.preventDefault();
+    clearChangeMasterError();
+
+    const current = document.getElementById('change-master-current')?.value ?? '';
+    const next = document.getElementById('change-master-new')?.value ?? '';
+    const confirm = document.getElementById('change-master-confirm')?.value ?? '';
+
+    if (!current) {
+        showChangeMasterError('Enter your current master password.');
+        return;
+    }
+    if (next.length < 12) {
+        showChangeMasterError('New password must be at least 12 characters.');
+        return;
+    }
+    if (next !== confirm) {
+        showChangeMasterError('New passwords do not match.');
+        return;
+    }
+
+    setChangeMasterBusy(true);
+    try {
+        const { salt, iterations, vaultCheck } = await ensureCryptoConfig();
+        const currentKey = await deriveKey(current, salt, iterations);
+        if (!(await verifyVaultCheck(currentKey, vaultCheck))) {
+            showChangeMasterError('Current master password is incorrect.');
+            return;
+        }
+
+        const newSalt = generateSalt();
+        const newKey = await deriveKey(next, newSalt, iterations);
+        const newCheck = await makeVaultCheck(newKey);
+        const payloadItems = [];
+        for (const item of items.filter((i) => !i.deleted_at)) {
+            const plain = item.plain ?? (await decryptJson(currentKey, item.ciphertext, item.iv));
+            const enc = await encryptJson(newKey, plain);
+            payloadItems.push({ id: item.id, ...enc });
+        }
+        await api('/api/crypto/rotate', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                kdf_salt: newSalt,
+                kdf_iterations: iterations,
+                vault_check: newCheck,
+                items: payloadItems,
+            }),
+        });
+        cryptoConfig = {
+            salt: newSalt,
+            iterations,
+            vaultCheck: JSON.parse(newCheck),
+        };
+        vaultKey = newKey;
+        closeChangeMasterDialog();
+        await loadItems();
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Could not update master password.';
+        showChangeMasterError(message);
+    } finally {
+        setChangeMasterBusy(false);
+    }
 }
 
 function bindUi() {
+    loadFavoriteStarMarkup();
+
     document.getElementById('unlock-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         clearUnlockError();
@@ -1055,12 +1218,7 @@ function bindUi() {
         saveEntry(e);
     });
     document.getElementById('entry-cancel')?.addEventListener('click', () => document.getElementById('entry-dialog')?.close());
-    document.getElementById('entry-password-toggle')?.addEventListener('click', () => {
-        const input = document.getElementById('entry-password');
-        if (!input) return;
-        input.type = input.type === 'password' ? 'text' : 'password';
-    });
-
+    document.getElementById('entry-dialog-close')?.addEventListener('click', () => document.getElementById('entry-dialog')?.close());
     document.getElementById('detail-close')?.addEventListener('click', () => {
         document.getElementById('detail-dialog')?.close();
     });
@@ -1111,10 +1269,16 @@ function bindUi() {
         const value = document.getElementById('generated-password')?.textContent ?? '';
         copyWithClear(value);
     });
-    document.getElementById('gen-close')?.addEventListener('click', () => document.getElementById('generator-dialog')?.close());
+    document.getElementById('gen-dialog-close')?.addEventListener('click', () => document.getElementById('generator-dialog')?.close());
 
-    document.getElementById('btn-export')?.addEventListener('click', exportVault);
-    document.getElementById('btn-change-master')?.addEventListener('click', changeMasterPassword);
+    document.getElementById('btn-export')?.addEventListener('click', openExportDialog);
+    document.getElementById('export-form')?.addEventListener('submit', submitExportVault);
+    document.getElementById('export-cancel')?.addEventListener('click', closeExportDialog);
+    document.getElementById('export-dialog-close')?.addEventListener('click', closeExportDialog);
+    document.getElementById('btn-change-master')?.addEventListener('click', openChangeMasterDialog);
+    document.getElementById('change-master-form')?.addEventListener('submit', submitChangeMasterPassword);
+    document.getElementById('change-master-cancel')?.addEventListener('click', closeChangeMasterDialog);
+    document.getElementById('change-master-dialog-close')?.addEventListener('click', closeChangeMasterDialog);
 
     document.getElementById('btn-import')?.addEventListener('click', () => {
         document.getElementById('import-file')?.click();

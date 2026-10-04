@@ -35,7 +35,7 @@ class VaultSecurityTest extends TestCase
     public function test_user_cannot_access_another_users_vault_item(): void
     {
         $owner = User::factory()->withTwoFactor()->withVaultCrypto()->create();
-        $other = User::factory()->withTwoFactor()->withVaultCrypto()->create();
+        $other = User::factory()->invitee($owner)->withTwoFactor()->withVaultCrypto()->create();
 
         $item = VaultItem::withoutGlobalScopes()->create([
             'user_id' => $owner->id,

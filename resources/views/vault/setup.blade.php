@@ -31,14 +31,20 @@
         </noscript>
 
         <form id="master-setup-form" class="space-y-4" action="#" method="post">
-            <div>
-                <label for="master" class="sb-label">Master password</label>
-                <input id="master" type="password" autocomplete="new-password" required minlength="12" class="sb-input">
-            </div>
-            <div>
-                <label for="master_confirm" class="sb-label">Confirm master password</label>
-                <input id="master_confirm" type="password" autocomplete="new-password" required minlength="12" class="sb-input">
-            </div>
+            <x-hashward.password-field
+                id="master"
+                label="Master password"
+                autocomplete="new-password"
+                required
+                minlength="12"
+            />
+            <x-hashward.password-field
+                id="master_confirm"
+                label="Confirm master password"
+                autocomplete="new-password"
+                required
+                minlength="12"
+            />
             <button type="submit" class="sb-btn-primary">Save and open vault</button>
         </form>
 

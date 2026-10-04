@@ -12,13 +12,15 @@ use Illuminate\View\View;
 
 class AuditLogController extends Controller
 {
+    public const PER_PAGE = 10;
+
     public function index(Request $request): View
     {
         $logs = AuditLog::query()
             ->where('user_id', $request->user()->id)
             ->orderByDesc('created_at')
-            ->limit(200)
-            ->get();
+            ->paginate(self::PER_PAGE)
+            ->withQueryString();
 
         return view('settings.audit', compact('logs'));
     }

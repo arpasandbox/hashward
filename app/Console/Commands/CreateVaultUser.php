@@ -10,10 +10,16 @@ class CreateVaultUser extends Command
 {
     protected $signature = 'vault:create-user {--name=} {--email=} {--password=}';
 
-    protected $description = 'Create the single vault account (no public registration).';
+    protected $description = 'Create the host vault account (no public registration).';
 
     public function handle(): int
     {
+        if (User::hostExists()) {
+            $this->error('A host already exists. Add invitees via the invite flow in the app.');
+
+            return self::FAILURE;
+        }
+
         $name = $this->option('name') ?: $this->ask('Name');
         $email = $this->option('email') ?: $this->ask('Email');
         $password = $this->option('password') ?: $this->secret('Login password (min 12 chars)');
@@ -40,9 +46,10 @@ class CreateVaultUser extends Command
             'email' => $email,
             'password' => $password,
             'kdf_iterations' => 600000,
+            'is_host' => true,
         ]);
 
-        $this->info('User created. They must complete 2FA and master password setup on first login.');
+        $this->info('Host account created. Complete 2FA and master password setup on first login.');
 
         return self::SUCCESS;
     }
