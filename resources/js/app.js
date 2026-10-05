@@ -1,6 +1,15 @@
 import './bootstrap';
 import { initPasswordToggles } from './password-toggle.js';
 
+/** Prevent native POST to GET-only vault routes when chunks load slowly or fail. */
+function guardClientOnlyForms() {
+    const blockNativeSubmit = (event) => {
+        event.preventDefault();
+    };
+    document.getElementById('unlock-form')?.addEventListener('submit', blockNativeSubmit, { capture: true });
+    document.getElementById('master-setup-form')?.addEventListener('submit', blockNativeSubmit, { capture: true });
+}
+
 function showBootError(message) {
     const targets = [
         document.getElementById('vault-boot-error'),
@@ -33,6 +42,7 @@ async function bootPageModules() {
 }
 
 function start() {
+    guardClientOnlyForms();
     initPasswordToggles();
     bootPageModules().catch((error) => {
         console.error(error);

@@ -84,6 +84,25 @@ class VaultItemsApiTest extends TestCase
         $response->assertCreated();
     }
 
+    public function test_authenticated_user_can_delete_vault_item_via_json_method_spoof(): void
+    {
+        $user = User::factory()->withTwoFactor()->withVaultCrypto()->create();
+        $item = \App\Models\VaultItem::withoutGlobalScopes()->create([
+            'user_id' => $user->id,
+            'ciphertext' => base64_encode('blob'),
+            'iv' => base64_encode(random_bytes(12)),
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withSession(['auth.two_factor_passed' => true])
+            ->postJson("/api/vault/items/{$item->id}", [
+                '_method' => 'DELETE',
+            ]);
+
+        $response->assertOk();
+        $this->assertSoftDeleted('vault_items', ['id' => $item->id]);
+    }
+
     public function test_crypto_endpoint_returns_configuration(): void
     {
         $user = User::factory()->withTwoFactor()->withVaultCrypto()->create();

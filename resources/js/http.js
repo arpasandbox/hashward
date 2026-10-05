@@ -62,6 +62,30 @@ export function withJsonCsrf(body) {
     }
 }
 
+/** Some hosts return 405 for PUT/PATCH/DELETE; Laravel accepts POST + `_method` in JSON. */
+export function prepareMutatingApiRequest(method, body) {
+    const upper = (method || 'GET').toUpperCase();
+    if (!['PUT', 'PATCH', 'DELETE'].includes(upper)) {
+        return { method: upper, body };
+    }
+
+    let payload = {};
+    if (body !== undefined && body !== null && body !== '') {
+        try {
+            payload = typeof body === 'string' ? JSON.parse(body) : { ...body };
+        } catch {
+            payload = {};
+        }
+    }
+    delete payload._method;
+    payload._method = upper;
+
+    return {
+        method: 'POST',
+        body: withJsonCsrf(JSON.stringify(payload)),
+    };
+}
+
 export function buildApiHeaders(extra = {}) {
     const headers = {
         Accept: 'application/json',

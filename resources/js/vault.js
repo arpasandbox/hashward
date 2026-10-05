@@ -13,6 +13,7 @@ import {
     buildApiHeaders,
     buildFormBody,
     formBackedFetchMethod,
+    prepareMutatingApiRequest,
     syncCsrfToken,
     withJsonCsrf,
 } from './http';
@@ -288,8 +289,14 @@ async function api(path, options = {}) {
         requestBody = buildFormBody(formFields, { spoofMethod });
         const { 'Content-Type': _ignored, ...rest } = extraHeaders;
         extraHeaders = rest;
-    } else if (requestBody && mutating) {
-        requestBody = withJsonCsrf(requestBody);
+    } else if (mutating) {
+        if (['PUT', 'PATCH', 'DELETE'].includes(method)) {
+            const prepared = prepareMutatingApiRequest(method, requestBody);
+            requestMethod = prepared.method;
+            requestBody = prepared.body;
+        } else if (requestBody) {
+            requestBody = withJsonCsrf(requestBody);
+        }
     }
 
     const response = await fetch(path, {

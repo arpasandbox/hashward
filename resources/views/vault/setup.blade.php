@@ -30,7 +30,7 @@
             <p class="sb-alert-error">JavaScript is required to create your master password.</p>
         </noscript>
 
-        <form id="master-setup-form" class="space-y-4" action="#" method="post">
+        <form id="master-setup-form" class="space-y-4">
             <x-hashward.password-field
                 id="master"
                 label="Master password"

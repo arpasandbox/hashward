@@ -21,7 +21,10 @@
             <h1 class="mb-2 text-2xl font-semibold">Unlock your vault</h1>
             <p class="sb-lead">Hello, {{ $userName }}. Your master password stays in this browser. It is never sent to the server.</p>
             <div id="unlock-error" class="sb-alert-error hidden" role="alert" hidden></div>
-            <form id="unlock-form" class="space-y-4" action="#" method="post">
+            <noscript>
+                <p class="sb-alert-error mb-4">JavaScript is required to unlock your vault.</p>
+            </noscript>
+            <form id="unlock-form" class="space-y-4">
                 <x-hashward.password-field
                     id="unlock-master"
                     label="Master password"
